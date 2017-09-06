@@ -1,5 +1,5 @@
 import requests
-import ast
+import simplejson as json
 
 """
 document: https://coincheck.com/documents/exchange/api
@@ -8,7 +8,8 @@ document: https://coincheck.com/documents/exchange/api
 base_url = "https://coincheck.com"
 api_urls = { 'ticker'     : '/api/ticker',
              'trades'     : '/api/trades',
-             'order_books': '/api/order_books'
+             'order_books': '/api/order_books',
+             'orders_rate': '/api/exchange/orders/rate'
              }
 
 class Market(object):
@@ -16,11 +17,10 @@ class Market(object):
         pass
 
 
-    def public_api(self,url):
+    def public_api(self, url, **kwargs):
         ''' template function of public api'''
         try :
-            url in api_urls
-            return ast.literal_eval(requests.get(base_url + api_urls.get(url)).text)
+            return json.loads(requests.get(base_url + api_urls.get(url), params=kwargs).text)
         except Exception as e:
             print(e)
     
@@ -35,6 +35,9 @@ class Market(object):
     def orderbooks(self):
         '''get latest asks/bids information of coincheck market'''
         return self.public_api('order_books') 
+
+    def orders_rate(self, order_type, pair, **kwargs):
+        return self.public_api('orders_rate', order_type=order_type, pair=pair, **kwargs)
 
 
 if __name__ == '__main__':
