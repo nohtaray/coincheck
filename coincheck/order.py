@@ -17,21 +17,23 @@ class Order(object):
         self.secret_key = secret_key
 
 
-    def create(self,rate, amount, order_type, pair):
+    def create(self,pair, order_type, rate=None, amount=None, market_buy_amount=None):
         ''' create new order function
+        :param pair: str; set 'btc_jpy'
+        :param order_type: str; set 'buy' or 'sell'
         :param rate: float
         :param amount: float
-        :param order_type: str; set 'buy' or 'sell'
-        :param pair: str; set 'btc_jpy' 
+        :param market_buy_amount: float; Market buy amount in JPY not BTC. ex) 10000
         '''
         nonce = nounce()
         payload = { 'rate': rate,
                     'amount': amount,
                     'order_type': order_type,
-                    'pair': pair
+                    'pair': pair,
+                    'market_buy_amount': market_buy_amount
                     }
         url= 'https://coincheck.com/api/exchange/orders'
-        body = 'rate={rate}&amount={amount}&order_type={order_type}&pair={pair}'.format(**payload)
+        body = 'rate={rate}&amount={amount}&order_type={order_type}&pair={pair}&market_buy_amount={market_buy_amount}'.format(**payload)
         message = nonce + url + body
         signature = hmac.new(self.secret_key.encode('utf-8'), message.encode('utf-8'), hashlib.sha256).hexdigest()
         headers = {
@@ -41,13 +43,27 @@ class Order(object):
         }
         r = requests.post(url,headers=headers,data=body)
         return json.loads(r.text)
-    
+
     def buy_btc_jpy(self, **kwargs):
         return self.create(order_type='buy', pair='btc_jpy',**kwargs) 
     
     def sell_btc_jpy(self, **kwargs):
-        return self.create(order_type='sell', pair='btc_jpy',**kwargs) 
-    
+        return self.create(order_type='sell', pair='btc_jpy',**kwargs)
+
+    def market_buy_btc_jpy(self, jpy_amount):
+        '''
+        :param jpy_amount: float; Market buy amount in JPY not BTC. ex) 10000
+        :return:
+        '''
+        return self.create(order_type='market_buy', pair='btc_jpy', market_buy_amount=jpy_amount)
+
+    def market_sell_btc_jpy(self, amount):
+        '''
+        :param amount: float; Order amount. ex) 0.1
+        :return:
+        '''
+        return self.create(order_type='market_sell', pair='btc_jpy', amount=amount)
+
     def list(self):
         ''' list all open orders func
         '''
