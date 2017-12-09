@@ -1,7 +1,7 @@
 import requests
 import simplejson as json
 
-from coincheck.utils import make_header
+from coincheck.utils import make_header, make_body
 
 """
 document: https://coincheck.com/documents/exchange/api
@@ -28,7 +28,7 @@ class Order(object):
                     'pair': pair,
                     }
         url= 'https://coincheck.com/api/exchange/orders'
-        body = 'rate={rate}&amount={amount}&order_type={order_type}&pair={pair}'.format(**payload)
+        body = make_body(**payload)
         headers = make_header(url,body=body, access_key=self.access_key,secret_key=self.secret_key)
         r = requests.post(url,headers=headers,data=body)
         return json.loads(r.text)
@@ -49,7 +49,7 @@ class Order(object):
                     'market_buy_amount': jpy_amount
                     }
         url= 'https://coincheck.com/api/exchange/orders'
-        body = 'order_type={order_type}&pair={pair}&market_buy_amount={market_buy_amount}'.format(**payload)
+        make_body(**payload)
         headers = make_header(url, body=body, access_key=self.access_key,secret_key=self.secret_key)
         r = requests.post(url,headers=headers,data=body)
         return json.loads(r.text)
