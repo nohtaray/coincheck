@@ -1,12 +1,13 @@
 import time
 import hmac
 import hashlib
+import urllib
 
 def nounce():
     '''
     return utc unix time in second
 
-    TODO: 
+    TODO:
     - return utc unix time in micro second
     '''
     return str(int(time.time() * 1000000000))
@@ -29,3 +30,6 @@ def make_header(url,
     }
     return headers
 
+def make_body(**kwargs):
+    params = [(k, v) for k, v in kwargs.items() if v is not None]
+    return urllib.parse.urlencode(params)

@@ -1,7 +1,7 @@
 import requests
 import simplejson as json
 
-from coincheck.utils import make_header
+from coincheck.utils import make_header, make_body
 
 """
 document: https://coincheck.com/documents/exchange/api
@@ -15,20 +15,24 @@ class Order(object):
         self.secret_key = secret_key
 
 
-    def create(self,pair, order_type, rate=None, amount=None):
+    def create(self,pair, order_type, rate=None, amount=None, market_buy_amount=None, position_id=None):
         ''' create new order function
         :param pair: str; set 'btc_jpy'
         :param order_type: str; set 'buy' or 'sell'
         :param rate: float
         :param amount: float
+        :param market_buy_amount: float; Market buy amount in JPY not BTC. ex) 10000
+        :param position_id: int
         '''
         payload = { 'rate': rate,
                     'amount': amount,
                     'order_type': order_type,
                     'pair': pair,
+                    'market_buy_amount': market_buy_amount,
+                    'position_id': position_id,
                     }
         url= 'https://coincheck.com/api/exchange/orders'
-        body = 'rate={rate}&amount={amount}&order_type={order_type}&pair={pair}'.format(**payload)
+        body = make_body(**payload)
         headers = make_header(url,body=body, access_key=self.access_key,secret_key=self.secret_key)
         r = requests.post(url,headers=headers,data=body)
         return json.loads(r.text)
@@ -44,15 +48,7 @@ class Order(object):
         :param jpy_amount: float; Market buy amount in JPY not BTC. ex) 10000
         :return:
         '''
-        payload = { 'order_type': 'market_buy',
-                    'pair': 'btc_jpy',
-                    'market_buy_amount': jpy_amount
-                    }
-        url= 'https://coincheck.com/api/exchange/orders'
-        body = 'order_type={order_type}&pair={pair}&market_buy_amount={market_buy_amount}'.format(**payload)
-        headers = make_header(url, body=body, access_key=self.access_key,secret_key=self.secret_key)
-        r = requests.post(url,headers=headers,data=body)
-        return json.loads(r.text)
+        return self.create(order_type='market_buy', pair='btc_jpy', market_buy_amount=jpy_amount)
 
     def market_sell_btc_jpy(self, amount):
         '''
@@ -66,6 +62,12 @@ class Order(object):
 
     def leverage_sell(self, amount, rate=None):
         return self.create(order_type='leverage_sell', pair='btc_jpy', amount=amount, rate=rate)
+
+    def close_long(self, position_id, amount, rate=None):
+        return self.create(order_type='close_long', pair='btc_jpy', position_id=position_id, amount=amount, rate=rate)
+
+    def close_short(self, position_id, amount, rate=None):
+        return self.create(order_type='close_short', pair='btc_jpy', position_id=position_id, amount=amount, rate=rate)
 
     def list(self):
         ''' list all open orders func
