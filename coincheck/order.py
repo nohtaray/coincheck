@@ -94,6 +94,18 @@ class Order(object):
         r = requests.get(url,headers=headers)
         return json.loads(r.text)
 
+    def history_pagination(self, **kwargs):
+        ''' show payment history
+        :param limit: You can specify the number of acquisition per page.
+        :param order: You can specify "desc" or "asc".
+        :param starting_after: If you specify the ID you can set the start point of list.
+        :param ending_before: If you specify the ID you can set the start point of list.
+        '''
+        url= 'https://coincheck.com/api/exchange/orders/transactions_pagination?' + make_body(**kwargs)
+        headers = make_header(url, access_key=self.access_key,secret_key=self.secret_key)
+        r = requests.get(url,headers=headers)
+        return json.loads(r.text)
+
     def leverage_positions(self, status):
         ''' show leverage positions
         :param status: str; 'open' or 'closed'
